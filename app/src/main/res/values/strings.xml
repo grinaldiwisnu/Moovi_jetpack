@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Moovi</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="poster">Poster</string>
+    <string name="exp_title">Title</string>
+    <string name="exp_genre">Genre</string>
+    <string name="exp_release">Release Date</string>
+    <string name="exp_duration">Duration</string>
+    <string name="exp_score">Rating</string>
+    <string name="overview">Description</string>
+    <string name="exp_overview">Description</string>
+    <string name="movie">Movie</string>
+    <string name="tv_show">TV Show</string>
+</resources>
