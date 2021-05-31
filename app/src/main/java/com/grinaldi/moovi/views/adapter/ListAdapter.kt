@@ -7,10 +7,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.grinaldi.moovi.data.models.Movie
 import com.grinaldi.moovi.databinding.MovieItemListBinding
-import com.grinaldi.moovi.views.DetailActivity
-import com.grinaldi.moovi.views.DetailActivity.Companion.CLICK
-import com.grinaldi.moovi.views.DetailActivity.Companion.ID
-import com.grinaldi.moovi.views.DetailActivity.Companion.TITLE
+import com.grinaldi.moovi.views.detail.DetailActivity
+import com.grinaldi.moovi.views.detail.DetailActivity.Companion.CLICK
+import com.grinaldi.moovi.views.detail.DetailActivity.Companion.ID
+import com.grinaldi.moovi.views.detail.DetailActivity.Companion.TITLE
 
 class ListAdapter(private val adapterId: Int) : RecyclerView.Adapter<ListAdapter.ListViewHolder>() {
 

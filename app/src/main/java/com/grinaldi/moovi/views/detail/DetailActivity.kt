@@ -1,4 +1,4 @@
-package com.grinaldi.moovi.views
+package com.grinaldi.moovi.views.detail
 
 import android.graphics.Color
 import android.os.Bundle
@@ -15,9 +15,7 @@ import com.grinaldi.moovi.data.models.Movie
 import com.grinaldi.moovi.databinding.ActivityDetailBinding
 import com.grinaldi.moovi.utils.DetailBinding
 import com.grinaldi.moovi.views.movie.MovieFragment.Companion.CLICK_MOVIE
-import com.grinaldi.moovi.views.movie.MovieViewModel
 import com.grinaldi.moovi.views.tv.TvFragment.Companion.CLICK_TV_SHOW
-import com.grinaldi.moovi.views.tv.TvViewModel
 
 class DetailActivity : AppCompatActivity(), DetailBinding {
     companion object {
@@ -28,23 +26,20 @@ class DetailActivity : AppCompatActivity(), DetailBinding {
 
     private lateinit var collapsingToolbar: CollapsingToolbarLayout
     private lateinit var binding: ActivityDetailBinding
+    private lateinit var viewModel: DetailViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_detail)
         binding = ActivityDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        viewModel = ViewModelProvider(this, ViewModelProvider.NewInstanceFactory())[DetailViewModel::class.java]
 
         collapseToolbarConfiguration()
 
-        val movieViewModel = ViewModelProvider(this,
-                ViewModelProvider.NewInstanceFactory())[MovieViewModel::class.java]
-        val tvShowViewModel = ViewModelProvider(this,
-                ViewModelProvider.NewInstanceFactory())[TvViewModel::class.java]
-
         when (intent.getIntExtra(CLICK, 0)) {
-            CLICK_MOVIE -> setBinding(movieViewModel.detailMovie(intent.getIntExtra(ID, 0))!!)
-            CLICK_TV_SHOW -> setBinding(tvShowViewModel.detailTvShow(intent.getIntExtra(ID, 0))!!)
+            CLICK_MOVIE -> setBinding(viewModel.detailMovie(intent.getIntExtra(ID, 0))!!)
+            CLICK_TV_SHOW -> setBinding(viewModel.detailTvShow(intent.getIntExtra(ID, 0))!!)
         }
     }
 

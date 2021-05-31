@@ -38,9 +38,9 @@ ext {
     recyclerViewVersion = '1.2.0'
     glideVersion = '4.11.0'
     androidCoreTestVersion = '2.1.0'
-    idleResourceVersion = '3.2.0'
+    idleResourceVersion = '3.3.0'
     androidXTestVersion = '1.2.0'
     mockitoVersion = '3.6.0'
     mockitoKotlinVersion = '2.2.0'
-
+    archLifecycleVersion = '2.1.0'
 }
