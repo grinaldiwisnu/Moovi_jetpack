@@ -43,32 +43,28 @@ class ExampleInstrumentedTest {
                         click()
                 )
         )
-        onView(withId(R.id.rv_movie))
         onView(withId(R.id.tv_title)).check(matches(isDisplayed()))
         onView(withId(R.id.tv_overview)).check(matches(isDisplayed()))
         onView(withId(R.id.tv_score)).check(matches(isDisplayed()))
-        onView(withId(R.id.rv_tvShow)).check(matches(isDisplayed()))
     }
 
     @Test
     fun loadTvShows() {
-        onView(withText("TV SHOWS")).perform(click())
+        onView(withText("TV SHOW")).perform(click())
         onView(withId(R.id.rv_tvShow)).check(matches(isDisplayed()))
     }
 
     @Test
     fun loadTvShowDetail() {
-        onView(withText("TV SHOWS")).perform(click())
+        onView(withText("TV SHOW")).perform(click())
         onView(withId(R.id.rv_tvShow)).perform(
                 RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(
                         0,
                         click()
                 )
         )
-        onView(withId(R.id.rv_movie))
         onView(withId(R.id.tv_title)).check(matches(isDisplayed()))
         onView(withId(R.id.tv_overview)).check(matches(isDisplayed()))
         onView(withId(R.id.tv_score)).check(matches(isDisplayed()))
-        onView(withId(R.id.rv_tvShow)).check(matches(isDisplayed()))
     }
 }

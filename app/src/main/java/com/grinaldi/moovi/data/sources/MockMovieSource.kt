@@ -264,7 +264,7 @@ object MockMovieSource {
     }
 
     fun getMovieById(id: Int): Movie? {
-        for (movie in listMovie) {
+        for (movie in getAllMovies()) {
             if (id == movie.id) {
                 return movie
             }
@@ -274,7 +274,7 @@ object MockMovieSource {
     }
 
     fun getTvById(id: Int): Movie? {
-        for (tv in listTv) {
+        for (tv in getAllTvShows()) {
             if (id == tv.id) {
                 return tv
             }
