@@ -6,5 +6,4 @@ import com.grinaldi.moovi.data.sources.MockMovieSource
 
 class MovieViewModel : ViewModel() {
     fun getMovies(): List<Movie> = MockMovieSource.getAllMovies()
-    fun detailMovie(id: Int): Movie? = MockMovieSource.getMovieById(id)
 }
