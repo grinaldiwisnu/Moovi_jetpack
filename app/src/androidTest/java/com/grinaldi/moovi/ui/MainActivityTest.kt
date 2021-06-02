@@ -1,4 +1,4 @@
-package com.grinaldi.moovi
+package com.grinaldi.moovi.ui
 
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.core.app.ActivityScenario
@@ -9,6 +9,7 @@ import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.contrib.RecyclerViewActions
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner
+import com.grinaldi.moovi.R
 import com.grinaldi.moovi.utils.IdlingResource
 import com.grinaldi.moovi.views.MainActivity
 import org.junit.After
@@ -17,7 +18,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4ClassRunner::class)
-class ExampleInstrumentedTest {
+class MainActivityTest {
     @Before
     fun setup() {
         ActivityScenario.launch(MainActivity::class.java)
