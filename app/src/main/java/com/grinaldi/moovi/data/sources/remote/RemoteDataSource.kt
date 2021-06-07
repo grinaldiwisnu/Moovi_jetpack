@@ -1,52 +1,49 @@
 package com.grinaldi.moovi.data.sources.remote
 
-import android.content.Context
-import com.grinaldi.moovi.base.BaseModel
-import com.grinaldi.moovi.data.models.Movie
-import com.grinaldi.moovi.data.sources.DataSource
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
+import com.grinaldi.moovi.data.sources.remote.network.NetworkService
+import com.grinaldi.moovi.data.sources.remote.response.ListMovies
+import com.grinaldi.moovi.data.sources.remote.response.ListTvShows
+import com.grinaldi.moovi.data.sources.remote.response.MovieDetail
+import com.grinaldi.moovi.data.sources.remote.response.TvShowDetail
+import com.grinaldi.moovi.utils.IdlingResource
 
-class RemoteDataSource(context: Context) : DataSource {
+class RemoteDataSource {
+    companion object {
+        @Volatile
+        private var instance: RemoteDataSource? = null
 
-    private val mApiService = RetrofitService.getApiService(context)
-    private var compositeDisposable: CompositeDisposable? = null
-
-    override fun getAllData(type: String, filter: String, callback: DataSource.GetAllDataCallback) {
-        mApiService.getAllData(type, filter, "MOVIE_DB_API_KEY")
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(object : Callback<BaseModel<List<Movie>>>() {
-                override fun onSuccess(model: BaseModel<List<Movie>>) {
-                    val newData = model.results ?: listOf()
-                    callback.onSuccess(newData)
-                }
-
-                override fun onFailure(code: Int, errorMessage: String) {
-                    callback.onFailed(code, errorMessage)
-                }
-
-                override fun onFinish() {
-                    callback.onFinish()
-                }
-
-                override fun onStartObserver(disposable: Disposable) {
-                    addSubscribe(disposable)
-                }
-
-            })
-    }
-
-    override fun onClearDisposables() {
-        compositeDisposable?.clear()
-    }
-
-    fun addSubscribe(disposable: Disposable) {
-        if (compositeDisposable == null) {
-            compositeDisposable = CompositeDisposable()
-            compositeDisposable?.add(disposable)
+        fun getInstance(): RemoteDataSource {
+            return instance ?: synchronized(this) {
+                instance ?: RemoteDataSource()
+            }
         }
+    }
+
+    suspend fun getMovieList(): ListMovies {
+        IdlingResource.increment()
+        val result = NetworkService.getInstance().getNowPlayingMovies()
+        IdlingResource.decrement()
+        return result
+    }
+
+    suspend fun getTvShowList(): ListTvShows {
+        IdlingResource.increment()
+        val result = NetworkService.getInstance().getPopularTvShows()
+        IdlingResource.decrement()
+        return result
+    }
+
+    suspend fun getMovieDetail(movieId: Int): MovieDetail {
+        IdlingResource.increment()
+        val result = NetworkService.getInstance().getMovieDetail(movieId)
+        IdlingResource.decrement()
+        return result
+    }
+
+    suspend fun getTvShowDetail(tvShowId: Int): TvShowDetail {
+        IdlingResource.increment()
+        val result = NetworkService.getInstance().getTvShowDetail(tvShowId)
+        IdlingResource.decrement()
+        return result
     }
 }
