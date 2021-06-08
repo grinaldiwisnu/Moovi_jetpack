@@ -28,6 +28,7 @@ class TvFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         if (activity != null) {
             fragmentTvBinding.progressBar.visibility = View.VISIBLE
+            fragmentTvBinding.constrainDataNotFound.visibility = View.GONE
             val factory = ViewModelFactory.getInstance(requireActivity())
             val viewModel = ViewModelProvider(this, factory)[TvViewModel::class.java]
             val adapter = ListAdapter()

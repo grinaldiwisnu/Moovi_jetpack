@@ -28,6 +28,7 @@ class MovieFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         if (activity != null) {
             fragmentMovieBinding.progressBar.visibility = View.VISIBLE
+            fragmentMovieBinding.constrainDataNotFound.visibility = View.GONE
             val factory = ViewModelFactory.getInstance(requireActivity())
             val viewModel = ViewModelProvider(this, factory)[MovieViewModel::class.java]
             val adapter = ListAdapter()

@@ -52,6 +52,7 @@ class DetailActivity : AppCompatActivity() {
             binding.tvMovieTitle.text = detail?.title + " (${detail?.releaseDate})"
             binding.tvMovieTagLine.text = detail?.tagLine
             binding.tvMovieDetail.text = detail?.overview
+            binding.tvDetailHomePage.text = detail?.homepage
             binding.tvDetailRating.text =
                 StringBuilder("${detail?.voteAverage} / 10 (${detail?.voteCount} Votes)")
         })
