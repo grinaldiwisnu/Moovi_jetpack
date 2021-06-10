@@ -7,6 +7,7 @@ import com.grinaldi.moovi.data.sources.local.entity.DetailEntity
 import com.grinaldi.moovi.data.sources.local.entity.MovieEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 class LocalDataSource @Inject constructor(private val movieDao: MovieDao) {
     suspend fun insertMovie(movie: MovieEntity) {

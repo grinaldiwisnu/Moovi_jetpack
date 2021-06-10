@@ -1,5 +1,6 @@
 package com.grinaldi.moovi.data.sources.remote.network
 
+import com.grinaldi.moovi.utils.Constants.BASE_URL
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -7,8 +8,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class NetworkService {
     companion object {
-        private const val BASE_URL = "https://api.themoviedb.org/3/"
-
         fun getInstance(): MovieInterface {
             val loggingInterceptor =
                 HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)

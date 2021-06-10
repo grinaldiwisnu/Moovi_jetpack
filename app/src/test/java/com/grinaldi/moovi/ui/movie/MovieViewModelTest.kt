@@ -1,13 +1,18 @@
 package com.grinaldi.moovi.ui.movie
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
+import androidx.paging.PagedList
 import com.grinaldi.moovi.data.Repository
 import com.grinaldi.moovi.data.sources.local.entity.MovieEntity
-import com.grinaldi.moovi.utils.DummyData
+import com.grinaldi.moovi.utils.Resource
+import com.grinaldi.moovi.utils.Status
 import com.grinaldi.moovi.utils.TestCoroutineRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import org.junit.Assert.assertNotNull
+import okhttp3.ResponseBody.Companion.toResponseBody
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -16,39 +21,75 @@ import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
+import retrofit2.HttpException
+import retrofit2.Response
 
 @RunWith(MockitoJUnitRunner::class)
 @ExperimentalCoroutinesApi
 class MovieViewModelTest {
-    private lateinit var movieViewModel: MovieViewModel
-
     @get:Rule
     var instantTaskExecutorRule = InstantTaskExecutorRule()
+
+    @get:Rule
+    val testCoroutineRule = TestCoroutineRule()
 
     @Mock
     private lateinit var repository: Repository
 
     @Mock
-    private lateinit var observer: Observer<List<MovieEntity>>
+    private lateinit var pagedList: PagedList<MovieEntity>
+
+    @Mock
+    private lateinit var listObserver: Observer<Resource<PagedList<MovieEntity>>>
+
+    private lateinit var movieViewModel: MovieViewModel
+    private lateinit var responseHttpError: HttpException
 
     @Before
     fun init() {
         movieViewModel = MovieViewModel(repository)
+        val responseBody = Response.error<Error>(500, "".toByteArray().toResponseBody(null))
+        responseHttpError = HttpException(responseBody)
     }
 
-    @get:Rule
-    var testCoroutineRule = TestCoroutineRule()
+    @Test
+    fun `get movie list success`() {
+        testCoroutineRule.runBlockingTest {
+            val dummyList = pagedList
+            val value = Resource(Status.SUCCESS, dummyList, null)
+            val expectation = MutableLiveData<Resource<PagedList<MovieEntity>>>()
+            expectation.value = value
+            `when`(repository.getMovieList()).thenReturn(expectation)
+
+            val result = movieViewModel.getAllMovies()
+            result.observeForever(listObserver)
+            verify(listObserver).onChanged(value)
+            verify(repository).getMovieList()
+
+            assertEquals(expectation.value, result.value)
+            assertEquals(expectation.value?.data, result.value?.data)
+            assertNull(result.value?.message)
+        }
+    }
 
     @Test
-    fun getAllMovies() {
+    fun `get movie list with no data`() {
         testCoroutineRule.runBlockingTest {
-            val dummyMovies = DummyData.getDummyListData()
-            `when`(repository.getMovieList()).thenReturn(dummyMovies)
-            val movieEntities = movieViewModel.getAllMovies()
-            assertNotNull(movieEntities)
+            val errorMessage = "No Data Found"
+            val dummyList = pagedList
+            val value = Resource(Status.ERROR, dummyList, errorMessage)
+            val expectation = MutableLiveData<Resource<PagedList<MovieEntity>>>()
+            expectation.value = value
+            `when`(repository.getMovieList()).thenReturn(expectation)
+
+            val result = movieViewModel.getAllMovies()
+            result.observeForever(listObserver)
+            verify(listObserver).onChanged(value)
             verify(repository).getMovieList()
-            movieViewModel.getAllMovies().observeForever(observer)
-            verify(observer).onChanged(dummyMovies)
+
+            assertEquals(expectation.value, result.value)
+            assertEquals(expectation.value?.message, result.value?.message)
+            assertEquals(expectation.value?.message, errorMessage)
         }
     }
 }

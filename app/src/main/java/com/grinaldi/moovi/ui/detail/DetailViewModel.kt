@@ -1,27 +1,32 @@
 package com.grinaldi.moovi.ui.detail
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grinaldi.moovi.data.Repository
-import com.grinaldi.moovi.data.sources.local.entity.DetailEntity
 import com.grinaldi.moovi.data.sources.local.entity.MovieEntity
-import com.grinaldi.moovi.utils.Constants.TYPE_MOVIE
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class DetailViewModel(private val repository: Repository) : ViewModel() {
-    var movie = MutableLiveData<MovieEntity>()
+class DetailViewModel @Inject constructor(private val repository: Repository) : ViewModel() {
 
-    fun getMovieDetail(type: Int, contentId: Int): LiveData<DetailEntity> {
-        val result = MutableLiveData<DetailEntity>()
+    fun getMovieDetail(id: Int) = repository.getMovieDetail(id)
+
+    fun getTvShowDetail(id: Int) = repository.getTvShowDetail(id)
+
+    fun checkIsMovieFavorite(id: Int): LiveData<Boolean> {
+        return repository.checkMovieFavorite(id)
+    }
+
+    fun addMovieToFavorite(movieEntity: MovieEntity) {
         viewModelScope.launch {
-            val favoriteUsers = when (type) {
-                TYPE_MOVIE -> repository.getMovieDetail(contentId)
-                else -> repository.getTvShowDetail(contentId)
-            }
-            result.postValue(favoriteUsers)
+            repository.insertFavoriteMovie(movieEntity.id)
         }
-        return result
+    }
+
+    fun deleteMovieFromFavorite(movieEntity: MovieEntity) {
+        viewModelScope.launch {
+            repository.deleteFavoriteMovie(movieEntity.id)
+        }
     }
 }

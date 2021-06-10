@@ -1,65 +1,167 @@
 package com.grinaldi.moovi.data
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.MutableLiveData
+import androidx.paging.DataSource
+import com.grinaldi.moovi.data.sources.local.LocalDataSource
+import com.grinaldi.moovi.data.sources.local.entity.DetailEntity
+import com.grinaldi.moovi.data.sources.local.entity.MovieEntity
 import com.grinaldi.moovi.data.sources.remote.RemoteDataSource
-import com.grinaldi.moovi.utils.DummyData
-import com.nhaarman.mockitokotlin2.eq
+import com.grinaldi.moovi.utils.*
 import com.nhaarman.mockitokotlin2.verify
-import junit.framework.Assert.assertEquals
-import junit.framework.Assert.assertNotNull
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
+@Suppress("UNCHECKED_CAST")
+@ExperimentalCoroutinesApi
 class RepositoryTest {
     @get:Rule
-    var instantTaskExecutorRule = InstantTaskExecutorRule()
+    val instantTaskExecutorRule = InstantTaskExecutorRule()
 
-    private val remote = mock(RemoteDataSource::class.java)
-    private val movieRepository = TestMovieRepository(remote)
+    @get:Rule
+    val testCoroutineRule = TestCoroutineRule()
 
-    private val movieResponse = DummyData.getDummyMovieResponse()
-    private val movieDetailResponse = DummyData.getDummyMovieDetailResponse()
-    private val tvShowResponse = DummyData.getDummyTvShowResponse()
-    private val tvShowDetailResponse = DummyData.getDummyTvShowDetailResponse()
+    private var remoteDataSource = mock(RemoteDataSource::class.java)
+    private var localDataSource = mock(LocalDataSource::class.java)
 
-    @Test
-    fun getAllMovies() = runBlocking {
-        `when`(remote.getMovieList()).thenReturn(movieResponse)
-        val movieListTest = movieRepository.getMovieList()
-        verify(remote).getMovieList()
-        assertNotNull(movieListTest)
-        assertEquals(movieResponse.movies.size, movieListTest.size)
+    private lateinit var repository: Repository
+
+    @Before
+    fun init() {
+        repository = Repository(remoteDataSource, localDataSource)
     }
 
     @Test
-    fun getMovieDetail() = runBlocking {
+    fun `get movie list success`() {
+        testCoroutineRule.runBlockingTest {
+            val data = DummyData.getDummyListData()
+            val dataSourceFactory =
+                mock(DataSource.Factory::class.java) as DataSource.Factory<Int, MovieEntity>
+            `when`(localDataSource.getMovies()).thenReturn(dataSourceFactory)
+            repository.getMovieList()
+
+            val result = Resource.success(PagedListUtil.mockPagedList(data))
+            verify(localDataSource).getMovies()
+            assertNotNull(result.data)
+        }
+    }
+
+    @Test
+    fun `get tv show list success`() {
+        testCoroutineRule.runBlockingTest {
+            val data = DummyData.getDummyListData()
+            val dataSourceFactory =
+                mock(DataSource.Factory::class.java) as DataSource.Factory<Int, MovieEntity>
+            `when`(localDataSource.getTvShows()).thenReturn(dataSourceFactory)
+            repository.getTvShowsList()
+
+            val result = Resource.success(PagedListUtil.mockPagedList(data))
+            verify(localDataSource).getTvShows()
+            assertNotNull(result.data)
+        }
+    }
+
+    @Test
+    fun `get movie detail success`() {
+        testCoroutineRule.runBlockingTest {
+            val id = 1
+            val response = DummyData.getDummyDetailData()
+            val expectation = MutableLiveData<DetailEntity>()
+            expectation.value = response
+            `when`(localDataSource.getMovieDetail(id)).thenReturn(expectation)
+
+            val result = repository.getMovieDetail(id)
+            assertNotNull(result)
+
+            verify(localDataSource).getMovieDetail(id)
+        }
+    }
+
+    @Test
+    fun `get tv show detail success`() {
+        testCoroutineRule.runBlockingTest {
+            val id = 1
+            val response = DummyData.getDummyDetailData()
+            val expectation = MutableLiveData<DetailEntity>()
+            expectation.value = response
+            `when`(localDataSource.getTvShowDetail(id)).thenReturn(expectation)
+
+            val result = repository.getTvShowDetail(id)
+            assertNotNull(result)
+
+            verify(localDataSource).getTvShowDetail(id)
+        }
+    }
+
+    @Test
+    fun `get favorite movies list`() {
+        val response = DummyData.getDummyListData()
+        val dataSourceFactory =
+            mock(DataSource.Factory::class.java) as DataSource.Factory<Int, MovieEntity>
+        `when`(localDataSource.getFavoriteMovies()).thenReturn(dataSourceFactory)
+        repository.getFavoriteMovies()
+
+        val result = PagedListUtil.mockPagedList(response)
+        verify(localDataSource).getFavoriteMovies()
+
+        assertNotNull(result)
+        assertEquals(response.size, result.size)
+    }
+
+    @Test
+    fun `get favorite tv shows list`() {
+        val response = DummyData.getDummyListData()
+        val dataSourceFactory =
+            mock(DataSource.Factory::class.java) as DataSource.Factory<Int, MovieEntity>
+        `when`(localDataSource.getFavoriteTvShows()).thenReturn(dataSourceFactory)
+
+        repository.getFavoriteTvShows()
+        val result = PagedListUtil.mockPagedList(response)
+        verify(localDataSource).getFavoriteTvShows()
+
+        assertNotNull(result)
+        assertEquals(response.size, result.size)
+    }
+
+    @Test
+    fun `add a movie to favorite`() {
+        testCoroutineRule.runBlockingTest {
+            val id = 1
+            `when`(localDataSource.addFavoriteMovie(id)).thenReturn(Unit)
+            repository.insertFavoriteMovie(id)
+
+            verify(localDataSource).addFavoriteMovie(id)
+        }
+    }
+
+    @Test
+    fun `remove a movie from favorite`() {
+        testCoroutineRule.runBlockingTest {
+            val id = 1
+            `when`(localDataSource.deleteFavoriteMovie(id)).thenReturn(Unit)
+            repository.deleteFavoriteMovie(id)
+
+            verify(localDataSource).deleteFavoriteMovie(id)
+        }
+    }
+
+    @Test
+    fun checkMovieFavorite() {
+        val expected = false
         val movieId = 1
-        `when`(remote.getMovieDetail(eq(movieId))).thenReturn(movieDetailResponse)
-        val movieDetailTest = movieRepository.getMovieDetail(movieId)
-        verify(remote).getMovieDetail(eq(movieId))
-        assertNotNull(movieDetailTest)
-        assertEquals(movieDetailResponse.title, movieDetailTest.title)
-    }
+        val isFavorite = MutableLiveData<Boolean>()
+        isFavorite.value = false
+        `when`(localDataSource.checkMovieFavorite(movieId)).thenReturn(isFavorite)
 
-    @Test
-    fun getAllTvShows() = runBlocking {
-        `when`(remote.getTvShowList()).thenReturn(tvShowResponse)
-        val tvShowListTest = movieRepository.getTvShowList()
-        verify(remote).getTvShowList()
-        assertNotNull(tvShowListTest)
-        assertEquals(tvShowResponse.tvShows.size, tvShowListTest.size)
-    }
+        val result = LiveDataTestUtil.getValue(repository.checkMovieFavorite(movieId))
+        verify(localDataSource).checkMovieFavorite(movieId)
 
-    @Test
-    fun getTvShowDetail() = runBlocking {
-        val tvShowId = 1
-        `when`(remote.getTvShowDetail(eq(tvShowId))).thenReturn(tvShowDetailResponse)
-        val tvShowDetailTest = movieRepository.getTvShowDetail(tvShowId)
-        verify(remote).getTvShowDetail(eq(tvShowId))
-        assertNotNull(tvShowDetailTest)
-        assertEquals(tvShowDetailResponse.title, tvShowDetailTest.title)
+        assertEquals(expected, result)
     }
 }

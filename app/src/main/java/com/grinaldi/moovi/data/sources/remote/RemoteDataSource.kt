@@ -1,48 +1,72 @@
 package com.grinaldi.moovi.data.sources.remote
 
-import com.grinaldi.moovi.data.sources.remote.network.NetworkService
-import com.grinaldi.moovi.data.sources.remote.response.ListMovies
-import com.grinaldi.moovi.data.sources.remote.response.ListTvShows
-import com.grinaldi.moovi.data.sources.remote.response.MovieDetail
-import com.grinaldi.moovi.data.sources.remote.response.TvShowDetail
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import com.grinaldi.moovi.data.sources.remote.network.MovieInterface
+import com.grinaldi.moovi.data.sources.remote.response.*
+import com.grinaldi.moovi.utils.ErrorHandler
 import com.grinaldi.moovi.utils.IdlingResource
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-class RemoteDataSource {
-    companion object {
-        @Volatile
-        private var instance: RemoteDataSource? = null
-
-        fun getInstance(): RemoteDataSource {
-            return instance ?: synchronized(this) {
-                instance ?: RemoteDataSource()
+class RemoteDataSource @Inject constructor(private val movieInterface: MovieInterface) {
+    suspend fun getMovieList(): LiveData<ApiResponse<ListMovies>> {
+        IdlingResource.increment()
+        val result = MutableLiveData<ApiResponse<ListMovies>>()
+        try {
+            val data = withContext(Dispatchers.IO) { movieInterface.getNowPlayingMovies() }
+            if (data.movies.isEmpty()) {
+                result.postValue(ApiResponse.empty("No Data Found", data))
+            } else {
+                result.postValue(ApiResponse.success(data))
             }
+        } catch (error: Exception) {
+            result.postValue(ApiResponse.error(ErrorHandler.generateErrorMessage(error)))
         }
-    }
-
-    suspend fun getMovieList(): ListMovies {
-        IdlingResource.increment()
-        val result = NetworkService.getInstance().getNowPlayingMovies()
         IdlingResource.decrement()
         return result
     }
 
-    suspend fun getTvShowList(): ListTvShows {
+    suspend fun getTvShowList(): LiveData<ApiResponse<ListTvShows>> {
         IdlingResource.increment()
-        val result = NetworkService.getInstance().getPopularTvShows()
+        val result = MutableLiveData<ApiResponse<ListTvShows>>()
+        try {
+            val data = withContext(Dispatchers.IO) { movieInterface.getPopularTvShows() }
+            if (data.tvShows.isEmpty()) {
+                result.postValue(ApiResponse.empty("No Data Found", data))
+            } else {
+                result.postValue(ApiResponse.success(data))
+            }
+        } catch (error: Exception) {
+            result.postValue(ApiResponse.error(ErrorHandler.generateErrorMessage(error)))
+        }
         IdlingResource.decrement()
         return result
     }
 
-    suspend fun getMovieDetail(movieId: Int): MovieDetail {
+    suspend fun getMovieDetail(id: Int): LiveData<ApiResponse<MovieDetail>> {
         IdlingResource.increment()
-        val result = NetworkService.getInstance().getMovieDetail(movieId)
+        val result = MutableLiveData<ApiResponse<MovieDetail>>()
+        try {
+            val data = withContext(Dispatchers.IO) { movieInterface.getMovieDetail(id) }
+            result.postValue(ApiResponse.success(data))
+        } catch (error: Exception) {
+            result.postValue(ApiResponse.error(ErrorHandler.generateErrorMessage(error)))
+        }
         IdlingResource.decrement()
         return result
     }
 
-    suspend fun getTvShowDetail(tvShowId: Int): TvShowDetail {
+    suspend fun getTvShowDetail(id: Int): LiveData<ApiResponse<TvShowDetail>> {
         IdlingResource.increment()
-        val result = NetworkService.getInstance().getTvShowDetail(tvShowId)
+        val result = MutableLiveData<ApiResponse<TvShowDetail>>()
+        try {
+            val data = withContext(Dispatchers.IO) { movieInterface.getTvShowDetail(id) }
+            result.postValue(ApiResponse.success(data))
+        } catch (error: Exception) {
+            result.postValue(ApiResponse.error(ErrorHandler.generateErrorMessage(error)))
+        }
         IdlingResource.decrement()
         return result
     }

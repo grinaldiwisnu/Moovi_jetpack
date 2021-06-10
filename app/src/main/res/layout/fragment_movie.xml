@@ -45,14 +45,14 @@
             android:layout_height="35dp"
             android:contentDescription="@string/error"
             android:src="@drawable/ic_baseline_error_24"
-            app:layout_constraintBottom_toTopOf="@+id/text_sad"
+            app:layout_constraintBottom_toTopOf="@+id/text_sad_movie"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_chainStyle="packed" />
 
         <TextView
-            android:id="@+id/text_sad"
+            android:id="@+id/text_sad_movie"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="28dp"

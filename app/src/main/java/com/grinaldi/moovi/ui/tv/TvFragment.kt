@@ -6,45 +6,66 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.grinaldi.moovi.App
 import com.grinaldi.moovi.databinding.FragmentTvBinding
 import com.grinaldi.moovi.ui.adapter.ListAdapter
 import com.grinaldi.moovi.ui.detail.DetailActivity
-import com.grinaldi.moovi.utils.Constants.TYPE_TV_SHOW
-import com.grinaldi.moovi.utils.ViewModelFactory
+import com.grinaldi.moovi.utils.Constants
+import com.grinaldi.moovi.utils.Status
+import javax.inject.Inject
 
 class TvFragment : Fragment() {
-    private lateinit var fragmentTvBinding: FragmentTvBinding
+    @Inject
+    lateinit var viewModel: TvViewModel
+
+    private lateinit var binding: FragmentTvBinding
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        fragmentTvBinding = FragmentTvBinding.inflate(layoutInflater, container, false)
-        return fragmentTvBinding.root
+        binding = FragmentTvBinding.inflate(layoutInflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        (context?.applicationContext as App).appComponent.inject(this)
         super.onViewCreated(view, savedInstanceState)
         if (activity != null) {
-            fragmentTvBinding.progressBar.visibility = View.VISIBLE
-            fragmentTvBinding.constrainDataNotFound.visibility = View.GONE
-            val factory = ViewModelFactory.getInstance(requireActivity())
-            val viewModel = ViewModelProvider(this, factory)[TvViewModel::class.java]
-            val adapter = ListAdapter()
-            adapter.setListener {
+            binding.progressBar.visibility = View.VISIBLE
+            binding.constrainDataNotFound.visibility = View.GONE
+
+            val adapter = ListAdapter {
                 val intent = Intent(requireActivity(), DetailActivity::class.java)
                 intent.putExtra(DetailActivity.EXTRA_CONTENT, it.id)
-                intent.putExtra(DetailActivity.EXTRA_TYPE, TYPE_TV_SHOW)
+                intent.putExtra(DetailActivity.EXTRA_TYPE, Constants.TYPE_MOVIE)
                 this.context?.startActivity(intent)
             }
-            viewModel.getAllTvShows().observe(viewLifecycleOwner, { tvShows ->
-                tvShows?.let { tvShowList ->
-                    fragmentTvBinding.progressBar.visibility = View.GONE
-                    adapter.setMovies(tvShowList)
+
+            val data = viewModel.getAllTvShows()
+
+            data.observe(viewLifecycleOwner, {
+                when (it.status) {
+                    Status.SUCCESS -> {
+                        adapter.submitList(it.data)
+                        binding.errorImage.visibility = View.GONE
+                        binding.textSadTv.visibility = View.GONE
+                        binding.progressBar.visibility = View.GONE
+                    }
+                    Status.LOADING -> {
+                        binding.progressBar.visibility = View.VISIBLE
+                    }
+                    Status.ERROR -> {
+                        binding.errorImage.visibility = View.VISIBLE
+                        binding.textSadTv.text = it.message
+                        binding.textSadTv.visibility = View.VISIBLE
+                        binding.progressBar.visibility = View.GONE
+                    }
                 }
             })
-            with(fragmentTvBinding.recyclerTv) {
+
+            with(binding.recyclerTv) {
                 layoutManager = LinearLayoutManager(context)
                 setHasFixedSize(true)
                 this.adapter = adapter

@@ -6,47 +6,66 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.grinaldi.moovi.App
 import com.grinaldi.moovi.databinding.FragmentMovieBinding
 import com.grinaldi.moovi.ui.adapter.ListAdapter
 import com.grinaldi.moovi.ui.detail.DetailActivity
 import com.grinaldi.moovi.utils.Constants.TYPE_MOVIE
-import com.grinaldi.moovi.utils.ViewModelFactory
+import com.grinaldi.moovi.utils.Status
+import javax.inject.Inject
 
 class MovieFragment : Fragment() {
-    private lateinit var fragmentMovieBinding: FragmentMovieBinding
+    @Inject
+    lateinit var viewModel: MovieViewModel
+
+    private lateinit var binding: FragmentMovieBinding
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        fragmentMovieBinding = FragmentMovieBinding.inflate(layoutInflater, container, false)
-        return fragmentMovieBinding.root
+        binding = FragmentMovieBinding.inflate(layoutInflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        (context?.applicationContext as App).appComponent.inject(this)
         super.onViewCreated(view, savedInstanceState)
         if (activity != null) {
-            fragmentMovieBinding.progressBar.visibility = View.VISIBLE
-            fragmentMovieBinding.constrainDataNotFound.visibility = View.GONE
-            val factory = ViewModelFactory.getInstance(requireActivity())
-            val viewModel = ViewModelProvider(this, factory)[MovieViewModel::class.java]
-            val adapter = ListAdapter()
-            adapter.setListener {
+            binding.progressBar.visibility = View.VISIBLE
+            binding.constrainDataNotFound.visibility = View.GONE
+
+            val adapter = ListAdapter {
                 val intent = Intent(requireActivity(), DetailActivity::class.java)
                 intent.putExtra(DetailActivity.EXTRA_CONTENT, it.id)
                 intent.putExtra(DetailActivity.EXTRA_TYPE, TYPE_MOVIE)
                 this.context?.startActivity(intent)
             }
 
-            viewModel.getAllMovies().observe(viewLifecycleOwner, { movies ->
-                movies?.let { movieList ->
-                    fragmentMovieBinding.progressBar.visibility = View.GONE
-                    adapter.setMovies(movieList)
+            val data = viewModel.getAllMovies()
+
+            data.observe(viewLifecycleOwner, {
+                when (it.status) {
+                    Status.SUCCESS -> {
+                        adapter.submitList(it.data)
+                        binding.errorImage.visibility = View.GONE
+                        binding.textSadMovie.visibility = View.GONE
+                        binding.progressBar.visibility = View.GONE
+                    }
+                    Status.LOADING -> {
+                        binding.progressBar.visibility = View.VISIBLE
+                    }
+                    Status.ERROR -> {
+                        binding.errorImage.visibility = View.VISIBLE
+                        binding.textSadMovie.text = it.message
+                        binding.textSadMovie.visibility = View.VISIBLE
+                        binding.progressBar.visibility = View.GONE
+                    }
                 }
             })
 
-            with(fragmentMovieBinding.recyclerMovie) {
+            with(binding.recyclerMovie) {
                 layoutManager = LinearLayoutManager(context)
                 setHasFixedSize(true)
                 this.adapter = adapter
