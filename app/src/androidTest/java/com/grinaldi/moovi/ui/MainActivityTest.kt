@@ -23,7 +23,7 @@ import org.junit.runner.RunWith
 class MainActivityTest {
 
     @Before
-    fun setup() {
+    fun setUp() {
         ActivityScenario.launch(MainActivity::class.java)
         IdlingRegistry.getInstance().register(IdlingResource.espressoTestIdlingResource)
     }
@@ -34,82 +34,103 @@ class MainActivityTest {
     }
 
     @Test
-    fun loadMovies() {
+    fun movie_list_loaded_successfully() {
         onView(withId(R.id.recycler_movie)).check(matches(isDisplayed()))
+        onView(withId(R.id.text_sad_movie)).check(matches(not(isDisplayed())))
     }
 
+
     @Test
-    fun loadMovieDetail() {
-        onView(withId(R.id.recycler_movie)).perform(
-            RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(
-                0,
-                click()
+    fun movie_detail_loaded_successfully() {
+        onView(withText("MOVIES")).perform(click())
+        onView(withId(R.id.recycler_movie)).apply {
+            check(matches(isDisplayed()))
+            perform(
+                RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(1, click())
             )
-        )
-        onView(withId(R.id.rvMovieGenre))
+        }
         check_detail_components()
     }
 
     @Test
-    fun loadTvShows() {
+    fun tv_show_list_loaded_successfully() {
         onView(withText("TV SHOWS")).perform(click())
         onView(withId(R.id.recycler_tv)).check(matches(isDisplayed()))
+        onView(withId(R.id.text_sad_tv)).check(matches(not(isDisplayed())))
     }
 
     @Test
-    fun loadTvShowDetail() {
+    fun tv_show_detail_loaded_successfully() {
         onView(withText("TV SHOWS")).perform(click())
-        onView(withId(R.id.recycler_tv)).perform(
-            RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(
-                1,
-                click()
+        onView(withId(R.id.recycler_tv)).apply {
+            check(matches(isDisplayed()))
+            perform(
+                RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(1, click())
             )
-        )
+        }
         check_detail_components()
     }
 
     @Test
-    fun loadFavoriteMovies() {
-        onView(withId(R.id.recycler_movie)).perform(
-            RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(
-                0,
-                click()
+    fun favorite_movies_empty_list() {
+        val expectedErrorMessage = "No Data"
+        onView(withId(R.id.menu_favorite)).perform(click())
+        onView(withId(R.id.text_sad)).apply {
+            check(matches(isDisplayed()))
+            check(matches(withText(expectedErrorMessage)))
+        }
+    }
+
+    @Test
+    fun favorite_tv_shows_empty_list() {
+        val expectedErrorMessage = "No Data"
+        onView(withId(R.id.menu_favorite)).perform(click())
+        onView(withText("TV SHOWS")).perform(click())
+        onView(withId(R.id.text_sad)).apply {
+            check(matches(isDisplayed()))
+            check(matches(withText(expectedErrorMessage)))
+        }
+    }
+
+    @Test
+    fun add_favorite_movie_and_check_if_it_exists_in_favorite_list() {
+        val expectedErrorMessage = "No Data"
+        onView(withText("MOVIES")).perform(click())
+        onView(withId(R.id.recycler_movie)).apply {
+            check(matches(isDisplayed()))
+            perform(
+                RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(1, click())
             )
-        )
+        }
         onView(withId(R.id.fab)).perform(click())
         onView(isRoot()).perform(pressBack())
         onView(withId(R.id.menu_favorite)).perform(click())
-        onView(withId(R.id.recycler_movie)).check(matches(isDisplayed()))
-        onView(withId(R.id.recycler_movie)).perform(
-            RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(
-                0,
-                click()
-            )
+        onView(withId(R.id.text_sad)).apply {
+            check(matches(not(isDisplayed())))
+        }
+        onView(withId(R.id.recycler_fav)).perform(
+            RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(0, click())
         )
         onView(withId(R.id.fab)).perform(click())
         onView(isRoot()).perform(pressBack())
     }
 
     @Test
-    fun loadFavoriteTvShows() {
+    fun add_favorite_tv_show_and_check_if_it_exists_in_favorite_list() {
+        val expectedErrorMessage = "No Data"
         onView(withText("TV SHOWS")).perform(click())
-        onView(withId(R.id.recycler_tv)).check(matches(isDisplayed()))
         onView(withId(R.id.recycler_tv)).perform(
-            RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(
-                2,
-                click()
-            )
+            RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(1, click())
         )
         onView(withId(R.id.fab)).perform(click())
         onView(isRoot()).perform(pressBack())
         onView(withId(R.id.menu_favorite)).perform(click())
         onView(withText("TV SHOWS")).perform(click())
-        onView(withId(R.id.recycler_movie)).check(matches(isDisplayed()))
-        onView(withId(R.id.recycler_movie)).perform(
-            RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(
-                0,
-                click()
-            )
+        onView(withId(R.id.text_sad)).apply {
+            check(matches(not(isDisplayed())))
+        }
+        onView(withId(R.id.recycler_fav)).perform(
+            RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(0, click())
         )
         onView(withId(R.id.fab)).perform(click())
         onView(isRoot()).perform(pressBack())
@@ -122,9 +143,6 @@ class MainActivityTest {
         onView(withId(R.id.tvDetailRating)).check(matches(isDisplayed()))
         onView(withId(R.id.tvMovieTagLine)).check(matches(isDisplayed()))
         onView(withId(R.id.tvOverview)).check(matches(isDisplayed()))
-        onView(withId(R.id.smallPoster)).perform(swipeUp())
-        onView(withId(R.id.tvDetailHomePage)).check(matches(isDisplayed()))
-        onView(withId(R.id.tvOverview)).perform(swipeUp())
         onView(withId(R.id.errorMessage)).check(matches(not(isDisplayed())))
     }
 }

@@ -40,7 +40,7 @@ ext {
     androidCoreTestVersion = '2.1.0'
     idleResourceVersion = '3.3.0'
     androidXTestVersion = '1.2.0'
-    mockitoVersion = '3.6.0'
+    mockitoVersion = '3.9.0'
     mockitoKotlinVersion = '2.2.0'
     archLifecycleVersion = '2.1.0'
     okHttpVersion = '4.9.0'
@@ -48,5 +48,6 @@ ext {
     rxJavaVersion = '2.2.2'
     pagingVersion = '2.1.2'
     dagger_version = '2.27'
+    coroutines_version = "1.4.3"
     room_version = '2.3.0'
 }

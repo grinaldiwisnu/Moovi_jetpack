@@ -39,7 +39,7 @@ class TvFragment : Fragment() {
             val adapter = ListAdapter {
                 val intent = Intent(requireActivity(), DetailActivity::class.java)
                 intent.putExtra(DetailActivity.EXTRA_CONTENT, it.id)
-                intent.putExtra(DetailActivity.EXTRA_TYPE, Constants.TYPE_MOVIE)
+                intent.putExtra(DetailActivity.EXTRA_TYPE, Constants.TYPE_TV_SHOW)
                 this.context?.startActivity(intent)
             }
 

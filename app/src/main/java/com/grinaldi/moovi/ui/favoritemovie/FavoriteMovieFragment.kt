@@ -50,7 +50,7 @@ class FavoriteMovieFragment : Fragment() {
             this.context?.startActivity(intent)
         }
 
-        with(binding.recyclerMovie) {
+        with(binding.recyclerFav) {
             layoutManager = LinearLayoutManager(context)
             setHasFixedSize(true)
             this.adapter = adapter
